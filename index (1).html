@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Flora SMAN 30 Jakarta - Label Pintar Pot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Library Barcode & QRCode Generator -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary: #1b4332;
+            --secondary: #2d6a4f;
+            --accent: #52b788;
+            --bg-light: #f4f9f4;
+            --card-bg: #ffffff;
+            --text-main: #2b2d42;
+            --text-muted: #6c757d;
+            --radius: 16px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 3rem 1rem;
+            text-align: center;
+            border-bottom-left-radius: 35px;
+            border-bottom-right-radius: 35px;
+            box-shadow: 0 10px 25px rgba(27, 67, 50, 0.15);
+        }
+
+        header h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: -30px auto 0;
+            padding: 0 20px 40px;
+        }
+
+        .search-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .search-card input, .search-card select {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .flora-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-top: 5px solid var(--accent);
+            position: relative;
+        }
+
+        .flora-card:hover { transform: translateY(-5px); }
+
+        .badge-id {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: #e8f5e9;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-family: monospace;
+        }
+
+        .flora-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.3rem;
+            color: var(--primary);
+            margin-bottom: 4px;
+            padding-right: 70px;
+        }
+
+        .flora-latin {
+            font-style: italic;
+            color: var(--secondary);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .btn-detail {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 15px;
+            width: 100%;
+            font-family: inherit;
+            transition: background 0.2s;
+        }
+
+        .btn-detail:hover { background: var(--secondary); }
+
+        /* Modal Popup */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-width: 650px;
+            border-radius: var(--radius);
+            padding: 30px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .code-box {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .qr-container {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: var(--text-muted);
+        }
+
+        .info-section {
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+        }
+        .info-section strong {
+            color: var(--primary);
+        }
+        .source-tag {
+            display: inline-block;
+            background: #e1f5fe;
+            color: #0277bd;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        @media print {
+            body * { visibility: hidden; }
+            #detailModal, #detailModal * { visibility: visible; }
+            #detailModal { position: absolute; left: 0; top: 0; background: white; width: 100%; }
+            .close-btn, .btn-detail { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>E-Flora SMAN 30 Jakarta</h1>
+        <p>Direktori Digital & Label QR Code Pintar Pot Tanaman</p>
+    </header>
+
+    <div class="container">
+        <div class="search-card">
+            <input type="text" id="searchInput" placeholder="Cari nama tanaman atau kode ID (misal: BOT-001)..." onkeyup="filterFlora()">
+            <select id="locationFilter" onchange="filterFlora()">
+                <option value="">Semua Lokasi</option>
+                <option value="labkim">Lab Kimia</option>
+                <option value="masjid">Sekitar Masjid</option>
+                <option value="kantin">Area Kantin</option>
+                <option value="kebun">Kebun Sekolah</option>
+                <option value="wakil">Ruang Wakil</option>
+            </select>
+        </div>
+
+        <div class="grid-container" id="floraGrid"></div>
+    </div>
+
+    <!-- Modal Detail & QR Code Domain Sendiri -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <div id="modalHeader"></div>
+            
+            <div class="code-box">
+                <p style="font-size: 0.85rem; font-weight: 700; color: var(--primary);">SCAN QR CODE DOMAIN UTAMA</p>
+                <div class="qr-container" id="qrcodeCanvas"></div>
+                <p id="qrDomainText" style="font-family: monospace; font-size: 0.75rem; color: var(--secondary); font-weight: 600;"></p>
+                <svg id="barcodeCanvas"></svg>
+                <button onclick="window.print()" style="background: var(--secondary); color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; margin-top: 5px;">🖨️ Cetak Label Pot</button>
+            </div>
+
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        // PENGATURAN DOMAIN UTAMA WEB KAMU
+        // Ubah link di bawah ini sesuai domain web kamu (misal: Netlify, Vercel, atau GitHub Pages)
+        const CUSTOM_DOMAIN = "https://flora-sman30.netlify.app"; 
+
+        // Database Lengkap Sesuai Dokumen Sumber
+        const floraData = [
+            {
+                id: "BOT-001",
+                nama: "Pakis Rem Cina",
+                ilmiah: "Pteris vittata",
+                spesifikasi: "Pakis sejati dengan ental menyirip dan anak daun sempit.",
+                bunga: "Tidak berbunga; spora tumbuh pada sori di bawah daun[cite: 2].",
+                habitat: "Tropis/subtropis; celah batu, tembok dan lahan terbuka[cite: 2].",
+                perawatan: "Cahaya terang tersaring, media lembap porous; buang ental tua[cite: 2].",
+                fakta: "Diteliti untuk fitoremediasi arsenik; jangan dimakan[cite: 2].",
+                referensi: "Kew Plants of the World Online (POWO)",
+                lokasi: ["Depan labkim"]
+            },
+            {
+                id: "BOT-002",
+                nama: "Cabai",
+                ilmiah: "Capsicum spp.",
+                spesifikasi: "Herba/perdu pendek; varietas pada inventaris tidak dirinci[cite: 2].",
+                bunga: "Bunga putih kecil, penyerbukan membentuk buah[cite: 2].",
+                habitat: "Asal Amerika tropis; kini dibudidayakan luas[cite: 2].",
+                perawatan: "Matahari penuh, tanah subur porous, siram tanpa genangan[cite: 2].",
+                fakta: "Pedasnya bergantung spesies dan kultivar[cite: 2].",
+                referensi: "Kew POWO",
+                lokasi: ["Depan labkim", "Belakang labkim", "Bagian Kanan Masjid", "Gang kantin", "Kebun", "Depan lab Biologi & sekitaran"]
+            },
+            {
+                id: "BOT-003",
+                nama: "Andong / Hanjuang",
+                ilmiah: "Cordyline fruticosa",
+                spesifikasi: "Perdu tegak berdaun pita; kultivar merah/hijau beragam[cite: 2].",
+                bunga: "Bunga kecil pada malai menarik serangga[cite: 2].",
+                habitat: "Asli Papuasia hingga Pasifik barat; iklim tropis lembap[cite: 2].",
+                perawatan: "Cahaya terang/matahari pagi, tanah porous lembap; pangkas daun tua[cite: 2].",
+                fakta: "Daunnya memiliki pemakaian budaya dan hias di Pasifik[cite: 2].",
+                referensi: "Kew POWO",
+                lokasi: ["Depan labkim", "Ruang wakil (L)", "Mulmed (L)", "Parkiran guru", "Koperasi"]
+            },
+            {
+                id: "BOT-004",
+                nama: "Lidah Mertua",
+                ilmiah: "Dracaena trifasciata",
+                spesifikasi: "Daun tegak seperti pedang tumbuh dari rimpang; pola bergantung kultivar[cite: 2].",
+                bunga: "Bunga putih kehijauan harum, jarang muncul di pot[cite: 2].",
+                habitat: "Asal Afrika tropis barat-tengah; kini ditanam luas[cite: 2].",
+                perawatan: "Cahaya terang tersaring, media porous; siram setelah kering[cite: 2].",
+                fakta: "Nama lama Sansevieria berubah menjadi Dracaena dalam taksonomi modern[cite: 2].",
+                referensi: "Kew POWO",
+                lokasi: ["Depan labkim", "Belakang labkim", "Bagian Kanan Masjid", "Belakang kantin", "Kebun", "Depan lemari piala (L)", "Ruang wakil (L)", "Depan perpus", "Mulmed", "Parkiran guru", "Gerbang belakang"]
+            },
+            {
+                id: "BOT-005",
+                nama: "Pepaya",
+                ilmiah: "Carica papaya",
+                spesifikasi: "Herba berkayu lunak berdaun menjari besar dan buah pada batang[cite: 2].",
+                bunga: "Bunga jantan/betina dapat terpisah; penyerbukan membentuk buah[cite: 2].",
+                habitat: "Asal Amerika tropis; kini umum di kawasan hangat[cite: 2].",
+                perawatan: "Matahari penuh, tanah dalam porous; lindungi dari angin[cite: 2].",
+                fakta: "Batangnya lunak dan berongga, tidak sekeras pohon berkayu[cite: 2].",
+                referensi: "Kew POWO",
+                lokasi: ["Depan labkim", "Gang kantin", "Lapangan bultang"]
+            },
+            {
+                id: "BOT-006",
+                nama: "Resam",
+                ilmiah: "Dicranopteris linearis",
+                spesifikasi: "Paku berumpun dengan daun bercabang berulang seperti garpu[cite: 2].",
+                bunga: "Tidak berbunga; berkembang biak dengan spora[cite: 2].",
+                habitat: "Daerah tropis; lereng terbuka, tanah asam dan lahan terganggu[cite: 2].",
+                perawatan: "Cahaya terang, media lembap; batasi rimpang menjalar[cite: 2].",
+                fakta: "Sering menutup lahan terbuka sebagai vegetasi awal[cite: 2].",
+                referensi: "Kew POWO",
+                lokasi: ["Depan labkim"]
+            },
+            {
+                id: "BOT-007",
+                nama: "Kuping Gajah",
+                ilmiah: "Anthurium sp.",
+                spesifikasi: "Daun lebar berbentuk hati dengan urat menonjol[cite: 2].",
+                bunga: "Tongkol dan seludang khas Araceae berfungsi dalam reproduksi[cite: 2].",
+                habitat: "Anthurium daun umumnya dari hutan tropis Amerika[cite: 2].",
+                perawatan: "Cahaya tersaring, media organik porous dan lembap tanpa genangan[cite: 2].",
+                fakta: "Tulang daun kontras menjadi ciri hias populer[cite: 2].",
+                referensi: "Kew POWO",
+                lokasi: ["Depan labkim", "Belakang labkim"]
+            },
+            {
+                id: "BOT-008",
+                nama: "Sirih Gading",
+                ilmiah: "Epipremnum aureum",
+                spesifikasi: "Liana berdaun hati, berakar udara; corak warna bergantung kultivar[cite: 2].",
+                bunga: "Tongkol jarang muncul pada tanaman hias[cite: 2].",
+                habitat: "Asal Pasifik barat; kini merambat luas di daerah tropis[cite: 2].",
+                perawatan: "Teduh terang, media porous; biarkan permukaan agak kering[cite: 2].",
+                fakta: "Daun dewasa pada sulur yang memanjat bisa jauh lebih besar[cite: 2].",
+                referensi: "NCSU Extension",
+                lokasi: ["Bagian Kanan Masjid", "Kebun", "Ruang wakil", "Mulmed", "Depan lab Biologi"]
+            },
+            {
+                id: "BOT-009",
+                nama: "Pucuk Merah",
+                ilmiah: "Syzygium myrtifolium",
+                spesifikasi: "Perdu dengan pucuk merah yang menghijau saat menua[cite: 2].",
+                bunga: "Bunga putih-krem kecil dikunjungi serangga[cite: 2].",
+                habitat: "Asia Tenggara; taman tropis[cite: 2].",
+                perawatan: "Matahari cukup untuk warna; pangkas rutin[cite: 2].",
+                fakta: "Merahnya adalah daun muda, bukan bunga[cite: 2].",
+                referensi: "Kew POWO",
+                lokasi: ["Depan Ruang wakil", "Depan labfis", "Depan mulmed", "Depan lab Biologi"]
+            },
+            {
+                id: "BOT-010",
+                nama: "Karet Kebo",
+                ilmiah: "Ficus elastica",
+                spesifikasi: "Pohon berdaun tebal mengilap dan bergetah putih[cite: 2].",
+                bunga: "Bunga berada dalam sikonium; tawon ara menyerbuki[cite: 2].",
+                habitat: "Asia Selatan-Tenggara; hutan/taman tropis[cite: 2].",
+                perawatan: "Cahaya terang tersaring, media porous; siram saat permukaan kering[cite: 2].",
+                fakta: "Getahnya pernah digunakan sebagai bahan karet[cite: 2].",
+                referensi: "Kew POWO",
+                lokasi: ["Depan Ruang wakil", "Parkiran guru", "Koperasi", "Depan lab Biologi"]
+            }
+        ];
+
+        function renderFlora(data) {
+            const grid = document.getElementById('floraGrid');
+            grid.innerHTML = '';
+
+            if (data.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 40px; color:var(--text-muted);">Tanaman tidak ditemukan.</div>`;
+                return;
+            }
+
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'flora-card';
+                card.innerHTML = `
+                    <span class="badge-id">${item.id}</span>
+                    <div>
+                        <div class="flora-name">${item.nama}</div>
+                        <div class="flora-latin">${item.ilmiah}</div>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">${item.spesifikasi.substring(0, 85)}...</p>
+                    </div>
+                    <button class="btn-detail" onclick="openModal('${item.id}')">Lihat Detail & Label QR Pot</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterFlora() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const location = document.getElementById('locationFilter').value.toLowerCase();
+
+            const filtered = floraData.filter(item => {
+                const matchSearch = item.nama.toLowerCase().includes(search) || 
+                                    item.ilmiah.toLowerCase().includes(search) || 
+                                    item.id.toLowerCase().includes(search);
+                const matchLocation = location === "" || item.lokasi.some(loc => loc.toLowerCase().includes(location));
+                return matchSearch && matchLocation;
+            });
+
+            renderFlora(filtered);
+        }
+
+        function openModal(id) {
+            const item = floraData.find(f => f.id === id);
+            if (!item) return;
+
+            document.getElementById('modalHeader').innerHTML = `
+                <h2 style="color: var(--primary); font-family: 'Space Grotesk'; font-size: 1.6rem;">${item.nama}</h2>
+                <p style="font-style: italic; color: var(--secondary); font-weight: 600; font-size: 1.05rem;">${item.ilmiah}</p>
+                <span class="source-tag">Referensi Ilmiah: ${item.referensi}</span>
+            `;
+
+            document.getElementById('modalBody').innerHTML = `
+                <div class="info-section"><strong>ID Inventaris:</strong> ${item.id}</div>
+                <div class="info-section"><strong>Spesifikasi Botani:</strong> ${item.spesifikasi}</div>
+                <div class="info-section"><strong>Karakteristik Bunga:</strong> ${item.bunga}</div>
+                <div class="info-section"><strong>Habitat & Sebaran:</strong> ${item.habitat}</div>
+                <div class="info-section"><strong>Panduan Perawatan:</strong> ${item.perawatan}</div>
+                <div class="info-section"><strong>Fakta Ilmiah & Unik:</strong> ${item.fakta}</div>
+                <div class="info-section"><strong>Lokasi di Sekolah:</strong> ${item.lokasi.join(', ')}</div>
+            `;
+
+            // Bersihkan elemen QR lama
+            const qrContainer = document.getElementById("qrcodeCanvas");
+            qrContainer.innerHTML = "";
+
+            // URL unik mengarah ke domain sendiri + ID tanaman spesifik
+            const targetUrl = `${CUSTOM_DOMAIN}/?id=${item.id}`;
+            document.getElementById("qrDomainText").innerText = targetUrl;
+
+            // Generate QR Code spesifik per tanaman
+            try {
+                new QRCode(qrContainer, {
+                    text: targetUrl,
+                    width: 105,
+                    height: 100,
+                    colorDark: "#1b4332",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            } catch(e) {
+                qrContainer.innerHTML = "Gagal memuat QR Code";
+            }
+
+            // Generate Barcode Garis Berbeda Tiap Tanaman
+            try {
+                JsBarcode("#barcodeCanvas", item.id, {
+                    format: "CODE128",
+                    lineColor: "#1b4332",
+                    width: 1.4,
+                    height: 38,
+                    displayValue: true,
+                    fontSize: 11
+                });
+            } catch(e) {}
+
+            document.getElementById('detailModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('detailModal')) {
+                closeModal();
+            }
+        }
+
+        // Auto-detect URL parameter saat QR code discan di HP
+        window.onload = function() {
+            renderFlora(floraData);
+            const urlParams = new URLSearchParams(window.location.search);
+            const plantId = urlParams.get('id');
+            if (plantId) {
+                openModal(plantId);
+            }
+        }
+    </script>
+</body>
+</html>
